@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Data by Id</title>
+    <style>
+        #main-box {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .myform {
+            display: none;
+        }
+
+        .myform.active{
+            display: grid;
+        }
+
+        #cancel-btn{
+            display: none;
+        }
+
+        #cancel-btn.active{
+            display: flex;
+        }
+        
+
+
+    </style>
+</head>
+
+<body>
+    <div>
+        <h1 class="heading">ID Based Data</h1>
+
+        <main id="main-box">
+
+            <div id="card">
+                <input type="number" id="my-input" placeholder="Enter U ser ID" />
+                <div id="data-box">
+                    <h2 id="data-id">ID:</h2>
+                    <div id="name">Name:</div>
+                    <div id="u-name">UserName:</div>
+                    <div id="email">Email:</div>
+                    <div id="phone">Phone NO:</div>
+                    <div id="company">Company:</div>
+                    <div id="address">Address:</div>
+
+                    <!-- <img id="my-img" src="" alt="Image" /> -->
+
+                </div>
+                <button id="edit-btn" onclick="editCard(this)">Edit</button>
+                <button id="delete-btn" onclick="deleteCard(this)">Delete</button>
+            </div>
+
+            <div>
+                <button id="my-addbtn">Add Data</button>
+                <form id="my-form" class="myform">
+                    <input type="number" id="my-id" placeholder="user ID" />
+                    <input type="text" id="my-name" placeholder="name" />
+                    <input type="text" id="my-uname" placeholder="username" />
+                    <input type="email" id="my-email" placeholder="email" />
+                    <input type="number" id="my-phone" placeholder="phone" />
+                    <input type="text" id="my-company" placeholder="Company" />
+                    <input type="text" id="my-address" placeholder="Address" />
+                </form>
+                <button id="cancel-btn">Cancel</button>
+            </div>
+
+
+
+        </main>
+    </div>
+
+
+    <script>
+        let myInput = document.getElementById('my-input');
+        let card = document.getElementById('card');
+        // let myImage = document.getElementById('my-img');
+        // let title = document.getElementById('title');
+        let userId = document.getElementById('data-id');
+        let Name = document.getElementById('name');
+        let userName = document.getElementById('u-name');
+        let email = document.getElementById('email');
+        let phone = document.getElementById('phone');
+        let company = document.getElementById('company');
+        let address = document.getElementById('address');
+
+        //     ======================================        GET REQUST          ============================
+
+        myInput.addEventListener('keydown', (e) => {
+
+            if (e.key === "Enter") {
+
+                let id = myInput.value;
+                const fetchData = async () => {
+                    try {
+                        const response = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`);
+                        if (!response.ok) {
+                            throw new Error("Http Error: ", response.status);
+                        }
+                        console.log("Response:", response);
+
+                        // const myarr = [1, 2]
+
+                        // console.log("Checking type of:", myarr instanceof Array)
+
+                        const data = await response.json();
+                        console.log("Fetching Data:", data);
+
+                        userId.innerText = data.id;
+                        Name.innerText = data.name;
+                        userName.innerText = data.username;
+                        email.innerHTML = data.email;
+                        phone.innerText = data.phone;
+                        company.innerText = data.company.name;
+                        address.innerText = data.address.city;
+                    } catch (error) {
+                        console.log("error:", error);
+
+                    }
+
+                }
+
+                myInput.value = "";
+                fetchData();
+
+            }
+        })
+
+
+        //   My Form DOM
+        let myForm = document.getElementById('my-form');
+        let myId = document.getElementById('my-id')
+        let myName = document.getElementById('my-name');
+        let myUserName = document.getElementById('my-uname');
+        let myEmail = document.getElementById('my-email');
+        let myPhone = document.getElementById('my-phone');
+        let myAddress = document.getElementById('my-address');
+        let myCompany = document.getElementById('my-company');
+        let myAddButton = document.getElementById('my-addbtn');
+        let cancelButton = document.getElementById('cancel-btn')
+
+        myAddButton.addEventListener('click', ()=>{
+            myForm.classList.add('active');
+            cancelButton.classList.add('active');
+        })
+
+        cancelButton.addEventListener('click', ()=>{
+            myForm.classList.remove('active');
+            cancelButton.classList.remove('active');
+            myForm.reset(); 
+        })
+
+
+        // =========================          POST REQUST           =====================
+        
+        const createPost =async(postData)=>{
+            try{
+                const response = await fetch(`https://jsonplaceholder.typicode.com/users`,{
+                    method:'POST',
+                    headers:{
+                        'content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(postData)
+                });
+
+                if(!response.ok){
+                    throw new Error(`HTTP error! status: ${response.status}`)
+                }
+
+                const result = await response.json();
+                console.log("Success:", result);
+                return result;
+            }catch(error){
+                console.log(`error occuring ${error.message}`);
+            }
+        }
+
+        const newPost=()=>{
+            return {
+            id: myId.value,
+            name:myName.value,
+            username:myUserName.value,
+            email:myEmail.value,
+            phone:myPhone.value,
+            company: { name: myCompany.value },
+            address: { city: myAddress.value }
+
+            };
+
+        }
+
+        
+        
+        myForm.addEventListener("keydown", (e)=>{
+            if(e.key==='Enter'){
+                e.preventDefault();
+                createPost(newPost());
+                myForm.reset();
+            }
+        })
+
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit paragraph on click by DOM</title>
+</head>
+
+<body>
+    <div>
+        <input type="text" id="my-input" />
+        <button id="add-btn">Add</button>
+
+        <div id="para-div">
+            <p id="paragraph">Anscdsfdk;fl</p>
+        </div>
+    </div>
+
+    <script>
+        let input = document.getElementById('my-input');
+        let main = document.getElementById('para-div');
+        let paragraph = document.getElementById('paragraph');
+
+        let addButton = document.getElementById('add-btn');
+
+        addButton.addEventListener('click', () => {
+            paragraph.innerText = input.value;
+            input.value = "";
+        })
+
+
+        // paragraph.addEventListener('click', ()=>{});  instead of this we use use function
+        const handleclick=()=> {
+            let currentText = paragraph.innerText;
+            console.log(currentText);
+
+            let newInput = document.createElement('input');
+            newInput.type = "text";
+            newInput.id = "inputField"
+            newInput.value = currentText;
+
+            main.appendChild(newInput);
+
+            paragraph.remove();
+            // newInput.focus();
+
+            
+
+            let inputField = document.getElementById("inputField");
+
+            inputField.addEventListener('keydown', (e) => {
+                if (e.key == 'Enter') {
+                    // (() => {        no need for it as we can also work without it and it is ief in js
+                        let newPara = document.createElement("p")
+                        newPara.id = "paragraph"
+                        newPara.innerText = inputField.value
+
+                        main.appendChild(newPara)
+                        inputField.remove();
+
+                        paragraph = newPara;
+
+                        paragraph.addEventListener("click",handleclick);  // === to again and again edit
+                        console.log("debuggin");
+
+                        
+                    // })()
+                }
+            })
+
+        }
+
+        paragraph.addEventListener("click" , handleclick);
+
+
+
+    </script>
+</body>
+
+</html>
