@@ -15,20 +15,17 @@
             display: none;
         }
 
-        .myform.active{
+        .myform.active {
             display: grid;
         }
 
-        #cancel-btn{
+        #cancel-btn {
             display: none;
         }
 
-        #cancel-btn.active{
+        #cancel-btn.active {
             display: flex;
         }
-        
-
-
     </style>
 </head>
 
@@ -63,7 +60,7 @@
                     <input type="text" id="my-name" placeholder="name" />
                     <input type="text" id="my-uname" placeholder="username" />
                     <input type="email" id="my-email" placeholder="email" />
-                    <input type="number" id="my-phone" placeholder="phone" />
+                    <input type="text" id="my-phone" placeholder="phone" />
                     <input type="text" id="my-company" placeholder="Company" />
                     <input type="text" id="my-address" placeholder="Address" />
                 </form>
@@ -89,6 +86,9 @@
         let company = document.getElementById('company');
         let address = document.getElementById('address');
 
+        let currentUserId = null;
+        let isEditMode = false;
+
         //     ======================================        GET REQUST          ============================
 
         myInput.addEventListener('keydown', (e) => {
@@ -111,8 +111,9 @@
                         const data = await response.json();
                         console.log("Fetching Data:", data);
 
-                        userId.innerText = data.id;
-                        Name.innerText = data.name;
+                        currentUserId = data.id;
+                        userId.innerText = `ID:${data.id}`;
+                        Name.innerText = `Name:${data.name}`;
                         userName.innerText = data.username;
                         email.innerHTML = data.email;
                         phone.innerText = data.phone;
@@ -144,65 +145,181 @@
         let myAddButton = document.getElementById('my-addbtn');
         let cancelButton = document.getElementById('cancel-btn')
 
-        myAddButton.addEventListener('click', ()=>{
+        myAddButton.addEventListener('click', () => {
+            isEditMode = false;
             myForm.classList.add('active');
             cancelButton.classList.add('active');
+            myForm.reset();
+            // myId.diabled = false;
         })
 
-        cancelButton.addEventListener('click', ()=>{
+        cancelButton.addEventListener('click', () => {
             myForm.classList.remove('active');
             cancelButton.classList.remove('active');
-            myForm.reset(); 
+            myForm.reset();
         })
 
 
         // =========================          POST REQUST           =====================
-        
-        const createPost =async(postData)=>{
-            try{
-                const response = await fetch(`https://jsonplaceholder.typicode.com/users`,{
-                    method:'POST',
-                    headers:{
+
+        const createPost = async (postData) => {
+            try {
+                const response = await fetch(`https://jsonplaceholder.typicode.com/users`, {
+                    method: 'POST',
+                    headers: {
                         'content-Type': 'application/json',
                     },
                     body: JSON.stringify(postData)
                 });
 
-                if(!response.ok){
+                if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`)
                 }
 
                 const result = await response.json();
-                console.log("Success:", result);
+                console.log("Successfully Post:", result);
                 return result;
-            }catch(error){
+            } catch (error) {
                 console.log(`error occuring ${error.message}`);
             }
         }
 
-        const newPost=()=>{
+        const newPost = () => {
             return {
-            id: myId.value,
-            name:myName.value,
-            username:myUserName.value,
-            email:myEmail.value,
-            phone:myPhone.value,
-            company: { name: myCompany.value },
-            address: { city: myAddress.value }
+                id: myId.value,
+                name: myName.value,
+                username: myUserName.value,
+                email: myEmail.value,
+                phone: myPhone.value,
+                company: { name: myCompany.value },
+                address: { city: myAddress.value }
 
             };
 
         }
 
-        
-        
-        myForm.addEventListener("keydown", (e)=>{
-            if(e.key==='Enter'){
+
+
+        myForm.addEventListener("keydown", async (e) => {
+            if (e.key === 'Enter') {
                 e.preventDefault();
-                createPost(newPost());
+
+                if (isEditMode) {
+                    // const updatedUser = newPost();
+                    await updatePost(currentUserId, newPost());
+                } else {
+                    await createPost(newPost());
+                }
+
                 myForm.reset();
+                myForm.classList.remove('active');
+                cancelButton.classList.remove('active');
+                // myId.disabled = false;
             }
-        })
+        });
+
+
+
+        //   ================      PATCH METHOD      ============
+        const updatePost = async (id, updatedData) => {
+            try {
+                const response = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedData),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log("Updated:", result);
+                return result;
+            } catch (error) {
+                console.log("Update error:", error.message);
+            }
+        };
+
+
+
+        function editCard() {
+            if (!currentUserId) {
+                alert("Please fetch a user first!");
+                return;
+            }
+
+            isEditMode = true;
+
+            myForm.classList.add('active');
+            cancelButton.classList.add('active');
+
+            myId.value = currentUserId;
+             // prevent changing ID
+
+            myName.value = Name.innerText;
+            myUserName.value = userName.innerText;
+            myEmail.value = email.innerText;
+            myPhone.value = phone.innerText;
+            myCompany.value = company.innerText;
+            myAddress.value = address.innerText;
+        }
+
+
+
+
+
+
+        //    =========   DELETE      =========
+
+        const deletePost = async (id) => {
+            try {
+                const response = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                console.log(`User with ID ${id} deleted successfully`);
+                return true;
+            } catch (error) {
+                console.log("Delete error:", error.message);
+            }
+        };
+
+
+        async function deleteCard() {
+    if (!currentUserId) {
+        alert("fetch a user first!");
+        return;
+    }
+
+    const confirmDelete = confirm("Are you sure you want to delete this user?");
+    if (!confirmDelete) return;
+
+    await deletePost(currentUserId);
+
+    // Reset UI after delete
+    currentUserId = null;
+
+    userId.innerText = "ID:";
+    Name.innerText = "Name:";
+    userName.innerText = "UserName:";
+    email.innerText = "Email:";
+    phone.innerText = "Phone NO:";
+    company.innerText = "Company:";
+    address.innerText = "Address:";
+
+    myForm.reset();
+    myForm.classList.remove('active');
+    cancelButton.classList.remove('active');
+}
+
+
 
 
 
